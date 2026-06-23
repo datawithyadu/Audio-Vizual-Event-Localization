@@ -10,13 +10,16 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import mlflow
-
 import config
 import utils
-from dataset import AVEDataset
+from dataset import AVEDataset, AVEDatasetH5
 from models import AVEModel
 import evaluate as ev
+
+_H5_AVAILABLE = (
+    os.path.exists(config.AUDIO_H5_FILE) and
+    os.path.exists(config.VISUAL_H5_FILE)
+)
 
 
 # ──────────────────────────────────────────────
@@ -123,7 +126,6 @@ def train(
     lr: float = config.LEARNING_RATE,
     weight_decay: float = config.WEIGHT_DECAY,
     patience: int = config.EARLY_STOPPING_PATIENCE,
-    run_name: str = "ave_att_net",
 ) -> AVEModel:
     device = get_device()
     print(f"Device : {device}")
@@ -131,8 +133,12 @@ def train(
     utils.ensure_dirs()
 
     # ── datasets ──────────────────────────────
-    train_set = AVEDataset(split="train", use_preextracted=True)
-    val_set   = AVEDataset(split="val",   use_preextracted=True)
+    if _H5_AVAILABLE:
+        train_set = AVEDatasetH5("train")
+        val_set   = AVEDatasetH5("val")
+    else:
+        train_set = AVEDataset(split="train", use_preextracted=True)
+        val_set   = AVEDataset(split="val",   use_preextracted=True)
 
     train_loader = DataLoader(
         train_set, batch_size=batch_size, shuffle=True,
@@ -156,60 +162,33 @@ def train(
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2, factor=0.5)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    # ── MLflow ────────────────────────────────
-    mlflow.set_tracking_uri(config.MLFLOW_TRACKING_URI)
-    mlflow.set_experiment(config.MLFLOW_EXPERIMENT_NAME)
-
     best_val_loss = float("inf")
     no_improve    = 0
     best_ckpt     = os.path.join(config.CHECKPOINT_DIR, "best_model.pt")
 
-    with mlflow.start_run(run_name=run_name):
-        mlflow.log_params({
-            "num_epochs"   : num_epochs,
-            "batch_size"   : batch_size,
-            "lr"           : lr,
-            "weight_decay" : weight_decay,
-            "lstm_hidden"  : config.LSTM_HIDDEN_DIM,
-            "dropout"      : 0.3,
-            "num_classes"  : config.NUM_CLASSES,
-            "modality_drop": config.MODALITY_DROPOUT_PROB,
-        })
+    for epoch in range(1, num_epochs + 1):
+        train_metrics = train_epoch(model, train_loader, optimizer, criterion, device)
+        val_metrics   = eval_epoch(model, val_loader, criterion, device)
+        scheduler.step(val_metrics["loss"])
 
-        for epoch in range(1, num_epochs + 1):
-            train_metrics = train_epoch(model, train_loader, optimizer, criterion, device)
-            val_metrics   = eval_epoch(model, val_loader, criterion, device)
-            scheduler.step(val_metrics["loss"])
+        print(
+            f"Epoch {epoch:3d}/{num_epochs} | "
+            f"train loss {train_metrics['loss']:.4f}  acc {train_metrics['accuracy']:.3f}  "
+            f"rec {train_metrics['recall']:.3f} | "
+            f"val loss {val_metrics['loss']:.4f}  acc {val_metrics['accuracy']:.3f}  "
+            f"rec {val_metrics['recall']:.3f}"
+        )
 
-            mlflow.log_metrics({
-                "train_loss"    : train_metrics["loss"],
-                "train_accuracy": train_metrics["accuracy"],
-                "train_recall"  : train_metrics["recall"],
-                "val_loss"      : val_metrics["loss"],
-                "val_accuracy"  : val_metrics["accuracy"],
-                "val_recall"    : val_metrics["recall"],
-            }, step=epoch)
-
-            print(
-                f"Epoch {epoch:3d}/{num_epochs} | "
-                f"train loss {train_metrics['loss']:.4f}  acc {train_metrics['accuracy']:.3f}  "
-                f"rec {train_metrics['recall']:.3f} | "
-                f"val loss {val_metrics['loss']:.4f}  acc {val_metrics['accuracy']:.3f}  "
-                f"rec {val_metrics['recall']:.3f}"
-            )
-
-            if val_metrics["loss"] < best_val_loss:
-                best_val_loss = val_metrics["loss"]
-                no_improve    = 0
-                torch.save(model.state_dict(), best_ckpt)
-                mlflow.log_artifact(best_ckpt)
-            else:
-                no_improve += 1
-                if no_improve >= patience:
-                    print(f"Early stopping at epoch {epoch} (no improvement for {patience} epochs)")
-                    break
-
-        mlflow.log_metric("best_val_loss", best_val_loss)
+        if val_metrics["loss"] < best_val_loss:
+            best_val_loss = val_metrics["loss"]
+            no_improve    = 0
+            torch.save(model.state_dict(), best_ckpt)
+            print(f"  -> best model saved (val_loss={best_val_loss:.4f})")
+        else:
+            no_improve += 1
+            if no_improve >= patience:
+                print(f"Early stopping at epoch {epoch} (no improvement for {patience} epochs)")
+                break
 
     print(f"\nBest model saved to: {best_ckpt}")
     model.load_state_dict(torch.load(best_ckpt, weights_only=True, map_location=device))

@@ -217,7 +217,7 @@ def baseline_scores(loader: DataLoader) -> None:
 if __name__ == "__main__":
     import os
     import torch
-    from dataset import AVEDataset
+    from dataset import AVEDataset, AVEDatasetH5
     from models import AVEModel
 
     def _get_device():
@@ -229,7 +229,8 @@ if __name__ == "__main__":
 
     device = _get_device()
 
-    test_set    = AVEDataset(split="test", use_preextracted=True)
+    _h5_ok = os.path.exists(config.AUDIO_H5_FILE) and os.path.exists(config.VISUAL_H5_FILE)
+    test_set = AVEDatasetH5("test") if _h5_ok else AVEDataset(split="test", use_preextracted=True)
     test_loader = torch.utils.data.DataLoader(
         test_set, batch_size=16, shuffle=False, num_workers=0,
     )
