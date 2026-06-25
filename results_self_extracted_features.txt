@@ -1,0 +1,40 @@
+Per-second accuracy    : 0.5963
+Macro recall           : 0.7153
+Mean Temporal IoU      : 0.8160
+Clips with IoU >= 0.5  : 0.8308
+
+                               precision    recall  f1-score   support
+
+                    Accordion       0.82      0.92      0.87       107
+              Acoustic guitar       0.71      0.70      0.70       178
+         Baby cry, infant cry       0.89      0.94      0.91        63
+                        Banjo       0.59      0.42      0.49       175
+                         Bark       0.40      0.42      0.41        89
+                          Bus       0.53      0.78      0.63        36
+                          Cat       0.08      0.18      0.11        33
+                     Chainsaw       0.71      0.98      0.82       126
+                  Church bell       0.66      0.97      0.79       140
+                        Clock       0.90      0.91      0.90       160
+Female speech, woman speaking       0.42      0.80      0.55       135
+Fixed-wing aircraft, airplane       0.53      0.81      0.64       160
+                        Flute       0.56      0.57      0.57       161
+                Frying (food)       0.76      0.93      0.84       139
+                         Goat       0.68      0.85      0.76        89
+                   Helicopter       0.39      0.34      0.36       133
+                        Horse       0.55      1.00      0.71        43
+    Male speech, man speaking       0.40      0.39      0.39       126
+                     Mandolin       0.55      0.56      0.55       147
+                   Motorcycle       0.55      0.81      0.66        75
+        Race car, auto racing       0.52      0.81      0.64       128
+          Rodents, rats, mice       0.54      0.86      0.66        80
+                       Shofar       0.41      0.55      0.47        88
+                 Toilet flush       0.63      1.00      0.77       109
+                   Train horn       0.71      0.81      0.76       158
+                        Truck       0.70      0.34      0.46       124
+                      Ukulele       0.66      0.53      0.59       152
+               Violin, fiddle       0.70      0.87      0.77       151
+                   Background       0.49      0.06      0.10       715
+
+                     accuracy                           0.60      4020
+                    macro avg       0.59      0.69      0.62      4020
+                 weighted avg       0.59      0.60      0.55      4020

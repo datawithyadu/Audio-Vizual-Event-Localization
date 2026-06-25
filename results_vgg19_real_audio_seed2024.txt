@@ -1,0 +1,47 @@
+variant        : vgg19_real_audio
+seed           : 2024
+epochs_run     : 14
+train_min      : 3.0
+audio_dir      : c:\D_Folder\python_projects\Audio_visual_event_localization\data\features\audio
+video_dir      : c:\D_Folder\python_projects\Audio_visual_event_localization\data\features\video
+
+Per-second accuracy    : 0.7035
+Macro recall           : 0.8253
+Mean Temporal IoU      : 0.8030
+Clips with IoU >= 0.5  : 0.8259
+
+                               precision    recall  f1-score   support
+
+                    Accordion       0.72      1.00      0.84       107
+              Acoustic guitar       0.85      0.80      0.83       178
+         Baby cry, infant cry       0.84      0.67      0.74        63
+                        Banjo       0.80      0.67      0.73       175
+                         Bark       0.46      0.85      0.60        89
+                          Bus       0.39      0.72      0.50        36
+                          Cat       0.50      0.45      0.48        33
+                     Chainsaw       0.76      0.84      0.80       126
+                  Church bell       0.78      1.00      0.88       140
+                        Clock       0.99      0.93      0.96       160
+Female speech, woman speaking       0.65      0.81      0.72       135
+Fixed-wing aircraft, airplane       0.68      0.92      0.78       160
+                        Flute       0.89      0.83      0.86       161
+                Frying (food)       0.73      1.00      0.84       139
+                         Goat       0.71      0.84      0.77        89
+                   Helicopter       0.71      0.58      0.64       133
+                        Horse       0.72      0.88      0.79        43
+    Male speech, man speaking       0.54      0.67      0.60       126
+                     Mandolin       0.58      0.65      0.61       147
+                   Motorcycle       0.80      0.95      0.87        75
+        Race car, auto racing       0.59      0.91      0.72       128
+          Rodents, rats, mice       0.74      0.88      0.80        80
+                       Shofar       0.80      0.80      0.80        88
+                 Toilet flush       0.67      1.00      0.80       109
+                   Train horn       0.87      0.96      0.91       158
+                        Truck       0.93      0.84      0.88       124
+                      Ukulele       0.76      0.78      0.77       152
+               Violin, fiddle       0.58      0.88      0.70       151
+                   Background       0.40      0.09      0.15       715
+
+                     accuracy                           0.70      4020
+                    macro avg       0.70      0.80      0.74      4020
+                 weighted avg       0.68      0.70      0.66      4020
